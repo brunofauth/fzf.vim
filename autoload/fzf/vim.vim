@@ -1337,7 +1337,10 @@ function! s:helptag_sink(line)
   if stridx(&rtp, rtp) < 0
     execute 'set rtp+='.s:escape(rtp)
   endif
-  execute 'help' tag
+
+  if winwidth(0) >= 2 * 80 | execute 'vertical help' tag
+  else                     | execute 'help' tag
+  endif
 endfunction
 
 function! fzf#vim#helptags(...)
