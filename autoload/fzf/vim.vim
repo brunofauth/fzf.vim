@@ -1332,8 +1332,8 @@ endfunction
 " Help tags
 " ------------------------------------------------------------------
 function! s:helptag_sink(line)
-  let [tag, file, path] = split(a:line, "\t")[0:2]
-  let rtp = fnamemodify(path, ':p:h:h')
+  let [tag, _help_file, tag_file] = split(a:line, "\t")[0:2]
+  let rtp = fnamemodify(tag_file, ':p:h:h')
   if stridx(&rtp, rtp) < 0
     execute 'set rtp+='.s:escape(rtp)
   endif
@@ -1347,8 +1347,8 @@ function! fzf#vim#helptags(...)
   if !executable('perl')
     return s:warn('Helptags command requires perl')
   endif
-  let sorted = sort(split(globpath(&runtimepath, 'doc/tags', 1), '\n'))
-  let tags = exists('*uniq') ? uniq(sorted) : fzf#vim#_uniq(sorted)
+  let sorted = sort(globpath(&runtimepath, 'doc/tags', 1, 1))
+  let tag_filenames = exists('*uniq') ? uniq(sorted) : fzf#vim#_uniq(sorted)
 
   if exists('s:helptags_script')
     silent! call delete(s:helptags_script)
@@ -1357,7 +1357,7 @@ function! fzf#vim#helptags(...)
 
   call writefile(['for my $filename (@ARGV) { open(my $file,q(<),$filename) or die; while (<$file>) { /(.*?)\t(.*?)\t(.*)/; push @lines, sprintf(qq('.s:green('%-40s', 'Label').'\t%s\t%s\t%s\n), $1, $2, $filename, $3); } close($file) or die; } print for sort @lines;'], s:helptags_script)
   return s:fzf('helptags', {
-  \ 'source': 'perl '.fzf#shellescape(s:helptags_script).' '.join(map(tags, 'fzf#shellescape(v:val)')),
+  \ 'source': 'perl '.fzf#shellescape(s:helptags_script).' '.join(map(tag_filenames, 'fzf#shellescape(v:val)')),
   \ 'sink':    s:function('s:helptag_sink'),
   \ 'options': ['--ansi', '+m', '--tiebreak=begin', '--with-nth', '..3']}, a:000)
 endfunction
